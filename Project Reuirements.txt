@@ -1,0 +1,41 @@
+*Key Functionality*:
+Uploading of Projects, Previewing of Projects, buying of projects
+Backend - Django RestFramework
+Frontend - React JS, Tailwind and HTML5
+Database Management - SQlite3
+Django-admin = Unfold Django Admin UI
+Payment gateway = Paystack
+Cloud Tools = cloudinary
+Authentication = JWT
+
+Endpoints
+*Public endpoints*
+api/v1/index - get
+api/v1/projects - (get, retrieve)
+api/v1/authors - (get, retrieve)
+api/v1/categories - (get, retrieve)
+api/v1/category-projects - (retrieve)
+api/v1/login (post)
+api/v1/register  (post)
+api/v1/about   (retrieve)
+
+*Private Endpoints*
+api/v1/user/dashboard - (retrieve)
+api/v1/user/profile	- (retrieve, put, patch)
+api/v1/user/upgrade 	- (put, patch)
+api/v1/user/projects	- (get, retrieve, put, patch, delete)
+api/v1/user/transactions - (get, retrieve)
+api/v1/user/cash-out	- (get, retrieve, put, patch, delete)
+api/v1/user/upload	- (post)
+api/v1/user/stats	- (get)
+api/v1/user/notifications - (get)
+api/v1/user/notification-seen - (post)
+api/v1/user/messages	-	(get, retrieve, post)
+api/v1/user/logout	-	
+
+*None Accessible*
+api/v1/payments/initiate (post)
+api/v1/payments/update   (patch)
+api/v1/payments/verify	 (get, retrieve)
+
+
