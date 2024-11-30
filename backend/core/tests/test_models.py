@@ -53,7 +53,5 @@ class ModelTests(TestCase):
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
 
-    def test_create_category_success(self):
-        """Test category success"""
         
 

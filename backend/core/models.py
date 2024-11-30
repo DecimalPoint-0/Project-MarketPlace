@@ -57,6 +57,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         """returns object as str"""
         return self.email
 
+    def projects(self):
+        """Returns the number of projects by a user"""
+        return Project.objects.get(author=self)
+
 
 class Category(models.Model):
     """Model for creating category"""
@@ -70,7 +74,7 @@ class Category(models.Model):
     def __str__(self):
         """Representation"""
         return self.title
-    
+        
     def save(self, *args, **kwargs):
         """overriding save method to auto upate slug field"""
         if self.slug == '' or self.slug is None:
@@ -91,7 +95,7 @@ class Project(models.Model):
     keywords = models.CharField(max_length=255, blank=True, null=True)
     co_authors = models.CharField(max_length=255, blank=True, null=True)
     table_of_content = models.FileField('table-of-contents/', blank=True, null=True)
-    project_content = models.FileField('table-of-content/', blank=True, null=True)
+    project_content = models.FileField('project-content/', blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):

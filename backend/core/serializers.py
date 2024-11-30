@@ -62,6 +62,13 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         return token
     
+class CategorySerializer(serializers.ModelSerializer):
+    """Serializer for category"""
+    
+    class Meta:
+        model = models.Category
+        fields = '__all__'
+
 
 class ProjectSerializer(serializers.ModelSerializer):
     """Serializer calss for Project"""
@@ -72,6 +79,12 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Project
         fields = ['title', 'description', 'keywords', 'co_authors',
-                  'table_of_content', 'project_content']
+                  'category', 'table_of_content', 'category', 'project_content']
 
 
+class AuthorSerializer(serializers.ModelSerializer):
+    """Serializer class for listing authors"""
+
+    class Meta:
+        model = models.User
+        fields = ['name', 'email', 'contact', 'specialization']
