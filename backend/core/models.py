@@ -47,6 +47,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=255, null=True, blank=True)
     contact = models.CharField(max_length=20, null=True, blank=True)
     specialization = models.CharField(max_length=255, null=True, blank=True)
+    referal_name = models.CharField(max_length=255, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     
     objects = UserManager()
@@ -88,15 +89,41 @@ class Category(models.Model):
 class Project(models.Model):
     """Model for projects"""
     
+    STATUS_CHOICE = (
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Declined', 'Declined'),
+    )
+    LEVEL_CHOICE = (
+        ('NCE', 'NCE'),
+        ('ND', 'ND'),
+        ('HND', 'HND'),
+        ('Bsc', 'Bsc'),
+        ('PGD', 'PGD'),
+        ('Msc', 'Msc'),
+        ('PhD', 'PhD'),
+    )
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     title = models.CharField(max_length=255)
     slug = models.SlugField(null=True, blank=True)
     description = models.TextField(blank=True, null=True)
     keywords = models.CharField(max_length=255, blank=True, null=True)
     co_authors = models.CharField(max_length=255, blank=True, null=True)
-    table_of_content = models.FileField('table-of-contents/', blank=True, null=True)
-    project_content = models.FileField('project-content/', blank=True, null=True)
+    table_of_content = models.FileField('table-of-contents', blank=True, null=True)
+    project_content = models.FileField('project-content', blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
+    level = models.CharField(max_length=50, choices=LEVEL_CHOICE, null=True, blank=True)
+    status = models.CharField(max_length=50, blank=True, null=True, choices=STATUS_CHOICE)
+    like = models.ManyToManyField(User, blank=True, related_name='project_likes')
+    views = models.IntegerField(default=0, blank=True, null=True)
+    dislikes = models.ManyToManyField(User, blank=True,
+                                    related_name='project_dislikes')
+    price = models.DecimalField(max_digits=20, decimal_places=2, default=0.00)
+    status = models.CharField(max_length=50, choices=(
+        ('Approved', ('Approved')),
+        ('Pending', ('Pending')),
+        ('Declined', ('Declined')),
+    ), default='Pending')
 
     def __str__(self):
         """Representation"""
@@ -115,12 +142,33 @@ class Project(models.Model):
 class Softwares(models.Model):
     """Models for software"""
 
+    STATUS_CHOICE = (
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Declined', 'Declined'),
+    )
+
+    LEVEL_CHOICE = (
+        ('NCE', 'NCE'),
+        ('ND', 'ND'),
+        ('HND', 'HND'),
+        ('BSC', 'BSC'),
+        ('PGD', 'PGD'),
+        ('MSC', 'MSC'),
+        ('PHD', 'PHD'),
+    )
+
     title = models.CharField(max_length=255)
     slug = models.SlugField(null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
     file = models.FileField('source-codes/', blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True, choices=STATUS_CHOICE)
+    like = models.ManyToManyField(User, blank=True, related_name='software_likes')
+    views = models.IntegerField(default=0, blank=True, null=True)
+    level = models.CharField(max_length=50, choices=LEVEL_CHOICE, null=True, blank=True)
+    dislikes = models.ManyToManyField(User, blank=True, related_name='software_dislikes')
 
     def __str__(self):
         """Representation"""
@@ -140,7 +188,7 @@ class Payments(models.Model):
     """Model for payments"""
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-    # item = models.ForeignKey(blank=True, null=True)
+    item = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     date = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=50, choices=(
@@ -151,7 +199,7 @@ class Payments(models.Model):
     payment_reference = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
-        return self.user
+        return f'{self.user} - {self.status}'
     
     class Meta:
         verbose_name_plural = 'Payments'
@@ -163,13 +211,46 @@ class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     action = models.CharField(max_length=25, null=True, blank=True)
     status = models.BooleanField(default=False)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True,
+                                null=True)
 
     def __str__(self):
-        return self.user
+        return f'{self.user} - {self.action} - {self.project}'
     
     class Meta:
         verbose_name_plural = 'Notifications'
 
 
+class UsersWallet(models.Model):
+    """Model for Creating Users Wallet"""
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    account_name = models.CharField(max_length=50, null=True, blank=True)
+    account_number = models.IntegerField(default=0.0)
+    bank = models.CharField(max_length=50, null=True, blank=True)
+    balance = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.user} - {self.account_name}'
+
+    class Meta:
+        verbose_name_plural = 'UsersWallet'
 
 
+class CashOut(models.Model):
+    """Model for cash out"""
+
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    date = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=50, choices=(
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Declined', 'Declined'),
+    ), default=True)
+
+    def __str__(self):
+        return f'{self.user} Requested to Withdraw N{self.amount}. ({self.status})'
+
+    class Meta:
+        verbose_name_plural = 'Cashouts'

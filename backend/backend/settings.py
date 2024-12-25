@@ -4,12 +4,20 @@ Django settings for backend project.
 
 from pathlib import Path
 import os
+from dotenv import read_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 from datetime import timedelta
 
+# Load environment variables from the .env file
+read_dotenv()
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-nu=i6ba535f!!+&x+m1$4(3w7osf#t+=h25_sh#&2i6r@h56pu'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY')
+PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY')
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -20,7 +28,6 @@ ALLOWED_HOSTS = []
 # Application definition
 INSTALLED_APPS = [
     'jazzmin',
-    'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'backend.middleware.FallbackMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -138,7 +146,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=50),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -235,22 +243,22 @@ JAZZMIN_UI_TWEAKS = {
     "accent": "accent-primary",
     "navbar": "navbar-navy navbar-dark",
     "no_navbar_border": False,
-    "navbar_fixed": False,
+    "navbar_fixed": True,
     "layout_boxed": False,
-    "footer_fixed": True,
-    "sidebar_fixed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
     "sidebar": "sidebar-light-primary",
     "sidebar_nav_small_text": True,
     "sidebar_disable_expand": False,
-    "sidebar_nav_child_indent": False,
-    "sidebar_nav_compact_style": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": True,
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": True,
     "theme": "default",
-    "dark_mode_theme": "darkly",
+    "dark_mode_theme": "dar kly",
     "button_classes": {
-        "primary": "btn-outline-primary",
-        "secondary": "btn-outline-secondary",
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
         "info": "btn-info",
         "warning": "btn-warning",
         "danger": "btn-danger",
@@ -259,3 +267,13 @@ JAZZMIN_UI_TWEAKS = {
     "actions_sticky_top": False
 }
 
+
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", default="sandbox.smtp.mailtrap.io")
+EMAIL_PORT = os.environ.get("EMAIL_PORT", default=465)
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_FROM_ADDRESS = os.environ.get("EMAIL_FROM_ADDRESS")
