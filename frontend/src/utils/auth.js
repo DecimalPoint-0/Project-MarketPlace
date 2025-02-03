@@ -26,10 +26,11 @@ const Toast = Swal.mixin({
 export const login = async (email, password) => {
     try {
         // Making a POST request to obtain user tokens
-        const { data, status } = await axios.post("user/token/", {
+        const { data, status } = await axios.post("/token/", {
             email,
             password,
         });
+
 
         // If the request is successful (status code 200), set authentication user and display success toast
         if (status === 200) {
@@ -48,19 +49,21 @@ export const login = async (email, password) => {
         // Handling errors and returning data and error information
         return {
             data: null,
-            error: error.response.data?.detail || "Something went wrong",
+            error: error.response || "Something went wrong",
         };
     }
 };
 
 // Function to handle user registration
-export const register = async (email, password, password2) => {
+export const register = async (email,name, password, password2, contact) => {
     try {
         // Making a POST request to register a new user
-        const { data } = await axios.post("user/register/", {
+        const { data } = await axios.post("/register/", {
             email,
+            name,
             password,
             password2,
+            contact
         });
 
         // Logging in the newly registered user and displaying success toast
@@ -144,7 +147,7 @@ export const setAuthUser = (access_token, refresh_token) => {
 export const getRefreshToken = async () => {
     // Retrieving refresh token from cookies and making a POST request to refresh the access token
     const refresh_token = Cookies.get("refresh_token");
-    const response = await axios.post("user/token/refresh/", {
+    const response = await axios.post("/token/refresh/", {
         refresh: refresh_token,
     });
 

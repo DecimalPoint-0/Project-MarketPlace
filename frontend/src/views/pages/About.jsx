@@ -1,108 +1,152 @@
 import React, { useState, useEffect } from "react";
 import Header from "../partials/Header";
 import Footer from "../partials/Footer";
-import apiInstance from "../../utils/axios";
+import { Link } from "react-router-dom";
+import { login } from "../../utils/auth"
+import { faFacebook, faTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons';
+import { faEnvelopeOpen, faCompass } from '@fortawesome/free-regular-svg-icons';
+import banner from "../../assets/images/banner.jpg";
+import mission from "../../assets/images/mission.png";
+import team1 from "../../assets/images/team1.jpg";
+import chat1 from "../../assets/images/chat1.png";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 function About() {
-
-    const [team, setTeam] = useState([])
-
-    const fetchTeam = async () => {
-        try {
-            const response = await apiInstance.get('team/')
-            setTeam(response.data)
-            console.log(team)
-        } catch (error) {
-            console.log(error)
-        }
-    }
-
-    useEffect(() => {
-        fetchTeam()
-    }, [])
 
     return (
         <>
             <Header />
 
-            <section className="pt-4 pb-0">
-                <div className="container">
-                    <div className="row">
-                        <div className="col-xl-9 mx-auto">
-                            <h2>Our story</h2>
-                            <p className="lead">
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Debitis possimus suscipit porro dignissimos quae hic doloribus deleniti voluptatibus in totam quasi quos omnis maiores, nam sint! In laborum architecto natus magnam sunt quasi neque aperiam, enim commodi totam
-                                nam nostrum.
-                            </p>
-                            <p>
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Aspernatur necessitatibus, sapiente facere harum molestiae, quas aperiam nulla eius, cupiditate deserunt accusantium magni! Necessitatibus saepe cupiditate facilis, sint est quod hic maxime aliquam, et impedit
-                                optio nihil, magnam libero ipsa quia expedita possimus. Unde corrupti asperiores, facilis dolorum ea doloremque sunt suscipit cupiditate officiis deleniti neque fuga eos rerum nulla aperiam incidunt praesentium quae tenetur officia fugiat magnam architecto, maiores
-                                est corporis. Autem possimus maiores nam hic tempora, impedit nemo a ad quidem? Voluptates, similique ut molestiae suscipit fugiat labore laudantium saepe incidunt facere. Vitae cupiditate ipsum et sed quia earum, consequatur atque quos dolore sunt beatae dolorum
-                                harum error aperiam dolores a ab eveniet animi. Doloribus minus quod aperiam maiores ex nulla eius perferendis inventore libero, sint dolore incidunt cupiditate excepturi omnis id eaque sit nemo vitae, in dolor molestias velit! In, aliquam! Possimus eum blanditiis hic
-                                enim illo quasi quod. Incidunt, esse? Molestiae optio sed quaerat minus, magnam eius accusamus odit nam nulla porro similique itaque sit, alias qui odio cupiditate totam laboriosam eos ratione minima. Amet sed alias nobis, soluta molestiae, suscipit possimus
-                                doloremque quod omnis delectus velit dolore repudiandae et iure exercitationem odio quia quae temporibus minus!
-                            </p>
-                            <h3 className="mt-4">We do this across:</h3>
-                            <ul>
-                                <li>A pleasure exertion if believed provided to. All led out world this music while asked. Paid mind even sons does he door no. Attended overcame repeated it is perceived Marianne in.</li>
-                                <li>Warrant private blushes removed an in equally totally if. Delivered dejection necessary objection do Mr prevailed. Mr feeling does chiefly cordial in do.</li>
-                                <li>
-                                    Mr feeling does chiefly cordial in do.{" "}
-                                    <a href="#">
-                                        <u>Water timed folly right aware if oh truth.</u>
-                                    </a>{" "}
-                                    Imprudence attachment him his for sympathize. Large above be to means.
-                                </li>
-                                <li>Dashwood does provide stronger is. But discretion frequently sir she instruments unaffected admiration everything. Meant balls it if up doubt small purse.</li>
-                            </ul>
-                            <h3 className="mb-3 mt-5">Our team</h3>
-                            <div className="row g-4">
-                                {team?.map((t, index) => (
-                                    <div className="col-sm-6 col-lg-3">
-                                        <div className="text-center">
-                                            <div className="avatar avatar-xxl mb-2">
-                                                <img
-                                                    className="avatar-img rounded-circle"
-                                                    style={{ width: "100px", height: "100px", objectFit: "cover" }}
-                                                    src={t?.image}
-                                                    alt="avatar"
-                                                />
-                                            </div>
-                                            <h5>{t.full_name}</h5>
-                                            <p className="m-0">{t?.position}</p>
-                                        </div>
-                                    </div>
-                                ))}
-  
-                            </div>
-                            {/* Service START */}
-                            <h3 className="mb-3 mt-5">What we do</h3>
-                            <div className="row">
-                                {/* Service item*/}
-                                <div className="col-md-6 col-lg-4 mb-4">
-                                    <img className="rounded" style={{ width: "100%", height: "170px", objectFit: "cover" }} src="https://www.aspistrategist.org.au/wp-content/uploads/2023/11/GettyImages-467714941-1024x764.jpg" alt="Card image" />
-                                    <h4 className="mt-3">Global news services</h4>
-                                    <p>Perceived end knowledge certainly day sweetness why cordially. Ask a quick six seven offer see among.</p>
-                                </div>
-                                {/* Service item*/}
-                                <div className="col-md-6 col-lg-4 mb-4">
-                                    <img className="rounded" style={{ width: "100%", height: "170px", objectFit: "cover" }} src="https://www.varletmachines.com/sites/default/files/styles/large/public/2022-04/Commercial.png?itok=jE81FZ_E" alt="Card image" />
-                                    <h4 className="mt-3">Commercial services</h4>
-                                    <p>Speedily say has suitable disposal add boy. On forth doubt miles of child. Exercise joy man children rejoiced.</p>
-                                </div>
-                                {/* Service item*/}
-                                <div className="col-md-6 col-lg-4 mb-4">
-                                    <img className="rounded" style={{ width: "100%", height: "170px", objectFit: "cover" }} src="https://www.columbiasouthern.edu/media/azmjow33/fire-ems-cj-public-service.jpg" alt="Card image" />
-                                    <h4 className="mt-3">Public services</h4>
-                                    <p> Yet uncommonly his ten who diminution astonished. Demesne new manners savings staying had. </p>
-                                </div>
-                            </div>
-                            {/* Service END */}
-                        </div>{" "}
-                        {/* Col END */}
+            <section className="bg-gray-200 p-8">
+                <div className="container mx-auto flex space-x-20 h-1/2 justify-center items-center px-10">
+                    <div className="flex-1 space-y-4 text-center">
+                        <h1 className="text-3xl font-robot font-bold text-primary">About <span className="text-secondary">Us</span></h1>
+                        <p className="">Lorem ipsum dolor sit amet, consectetur adipisicing elit. 
+                            Suscipit excepturi mollitia quidem nobis quos, explicabo 
+                            veniam incidunt quas cum qui ipsam nostrum saepe, vitae temporibus. 
+                            Ratione nisi cupiditate obcaecati a.</p>
+                    </div>
+
+                    <div>
+                        <img src={team1} alt="" className="h-80 w-80 object-cover rounded-lg" />
                     </div>
                 </div>
             </section>
+
+            <section className="p-8">
+                <div className="container mx-auto flex space-x-10 justify-center p-10">
+                    <div>
+                        <img src={mission} alt="" className="h-60 w-60 object-cover rounded-lg" />
+                    </div>
+                    <div className="flex-1 space-y-4 py-6">
+                        <h1 className="text-3xl font-robot font-bold text-primary">Our Mission</h1>
+                        <small className="">Lorem ipsum dolor sit amet, consectetur adipisicing elit..</small>
+                        <ul className="flex flex-col space-y-2">
+                            <li className="list-disc ml-10">Lorem, ipsum dolor.</li>
+                            <li className="list-disc ml-10">Lorem, ipsum dolor.</li>
+                            <li className="list-disc ml-10">Lorem, ipsum dolor.</li>
+                        </ul>
+
+                        <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente officiis 
+                            rem nesciunt? Harum, recusandae incidunt.</p>
+
+                    </div>
+                    <div className="flex-1 space-y-4 py-6">
+                        <h1 className="text-3xl font-robot font-bold text-primary">Our Vission</h1>
+                        <small className="">Lorem ipsum dolor sit amet, consectetur adipisicing elit..</small>
+                        <ul className="flex flex-col space-y-2">
+                            <li className="list-disc ml-10">Lorem, ipsum dolor.</li>
+                            <li className="list-disc ml-10">Lorem, ipsum dolor.</li>
+                            <li className="list-disc ml-10">Lorem, ipsum dolor.</li>
+                        </ul>
+
+                        <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente officiis 
+                            rem nesciunt? Harum, recusandae incidunt.</p>
+
+                    </div>
+                </div>
+            </section>
+
+            <section className="p-8">
+                <h1 className="p-8 text-center text-primary font-robot text-3xl font-extrabold">Meet Our Inspiring Executives</h1>
+                <div className="container mx-auto p-8 flex space-x-8">
+                    <div className="flex space-x-8 border-gray-200 border-2 p-4">
+                        <img src={team1} alt="" className="h-60 w-60 object-cover shadow-lg rounded-e-full" />
+                        <div className="flex flex-col space-y-2">
+                            <div>
+                                <h1 className="font-bold font-robot">Zubairu Abduljelil</h1>
+                                <small>Software Engineer</small>
+                            </div>
+                            <div className="social-links flex space-x-2">
+                                <FontAwesomeIcon icon={faFacebook} className="p-2 bg-primary text-white rounded-md" />
+                                <FontAwesomeIcon icon={faTwitter} className="p-2 bg-primary text-white rounded-md"  />
+                                <FontAwesomeIcon icon={faInstagram} className="p-2 bg-primary text-white rounded-md" />
+                            </div>
+                            <div>
+                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nihil sit consequuntur aspernatur
+                                     alias possimus odio quasi delectus consequatur similique ab?</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex flex-row-reverse space-x-8 border-gray-200 border-2 p-4">
+                        <img src={team1} alt="" className="pl-4 h-60 w-60 object-cover rounded-s-full" />
+                        <div className="flex flex-col space-y-2">
+                            <div>
+                                <h1 className="font-bold font-robot">Yusuf Abdulmalik</h1>
+                                <small>Software Engineer</small>
+                            </div>
+                            <div className="social-links flex space-x-2">
+                                <FontAwesomeIcon icon={faFacebook} className="p-2 bg-primary text-white rounded-md" />
+                                <FontAwesomeIcon icon={faTwitter} className="p-2 bg-primary text-white rounded-md"  />
+                                <FontAwesomeIcon icon={faInstagram} className="p-2 bg-primary text-white rounded-md" />
+                            </div>
+                            <div>
+                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nihil sit consequuntur aspernatur
+                                     alias possimus odio quasi delectus consequatur similique ab?</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <section className="p-8">
+                <div className="container mx-auto p-8">
+                    <div className="grid gap-4 grid-cols-2">
+        
+                        <form action="" className="bg-white px-8 py-10 border-gray-300 border-[1px] rounded-lg">
+                            
+                            <div className="form-title">
+                                <h1 className="font-bold text-3xl text-center">Send us a mail today!</h1>
+                            </div>
+
+                            <div className="form-body py-6 gap-x-8">
+                                <div className="flex flex-col space-y-2 pb-2">
+                                    <label htmlFor="">Your email:</label>
+                                    <input type="text" id="email" name="email" placeholder="zubairuabduljelil@gmail.com"  className="p-2 border-gray-300 border-[1px] rounded-sm"/>
+                                </div>
+                                <div className="flex flex-col space-y-2 pb-2">
+                                    <label htmlFor="">Title</label>
+                                    <input type="password" id="password" name="password" placeholder=""  className="p-2 border-gray-300 border-[1px] rounded-sm"/>
+                                </div>
+                                <div className="flex flex-col space-y-2 pb-2">
+                                    <label htmlFor="">Message</label>
+                                    <textarea name="" id="" className="p-2 border-gray-300 border-[1px] rounded-sm"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div className="py-2">
+                                <button className="w-full bg-primary text-white p-2" type="submit">Send Message</button>
+                            </div>
+                        </form>
+                        <div>
+                            <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d31619.37071191007!2d6.7386954999999995!3d7.8508947000000004!
+                            // 2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sng!4v1735208443731!5m2!1sen!2sng" width='100%' height='100%' style={{border:0}} allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <Footer />
         </>
     );

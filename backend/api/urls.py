@@ -10,8 +10,8 @@ app_name = 'api'
 urlpatterns = [
     
     # authentication urls
-    path('register', views.RegistrationAPIView.as_view()),
-    path('token', views.ObtainTokenPairAPIView.as_view()),
+    path('register/', views.RegistrationAPIView.as_view()),
+    path('token/', views.ObtainTokenPairAPIView.as_view()),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
      # url related urls
@@ -32,6 +32,8 @@ urlpatterns = [
                                         name='author-details'),
          
     path('categories/', views.Categories.as_view(), name='cateogries'),
-    path('categories/<id>/projects', views.ProjectCategories.as_view(), 
+    path('category/<id>/projects', views.ProjectCategories.as_view(), 
                                         name='cat_projects'),
+    
+    path('faqs', views.FAQSAPIView.as_view(), name='faqs'),
 ]

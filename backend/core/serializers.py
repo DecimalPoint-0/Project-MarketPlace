@@ -14,8 +14,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.User
-        fields = ['email', 'name', 'password', 'password2', 'contact',
-                  'specialization']
+        fields = ['email', 'name', 'password', 'password2', 'contact']
         
     def validate(self, attrs):
         """Validate password and confirm password fields"""
@@ -30,7 +29,6 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             email = validated_data['email'],
             name = validated_data['name'],
             contact = validated_data['contact'],
-            specialization = validated_data['specialization']
         )
         user.set_password(validated_data['password'])
         user.save()
@@ -53,10 +51,21 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializer for user profile"""
 
+    projects = serializers.SerializerMethodField()
+    likes = serializers.SerializerMethodField()
+
+    def get_likes(self, obj) -> int:
+        return models.Project.objects.filter(author=obj).annotate(
+            likes_count=Count('like')).aggregate(total_likes=Sum('likes_count'))['total_likes'] or 0
+
+    def get_projects(self, obj) -> int:
+        return  models.Project.objects.filter(author=obj).count()
+
+
     class Meta:
         model = models.User
         fields = ['password', 'email', 'name', 'contact', 
-                  'specialization']
+                  'specialization', 'projects', 'likes']
         extra_kwargs = {
             'password': {
                 'write_only': True,
@@ -96,10 +105,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Serializer for category"""
-    
+    project_count = serializers.IntegerField()
+
     class Meta:
         model = models.Category
-        fields = '__all__'
+        fields = ['id', 'title', 'description', 'project_count']
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -111,7 +121,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Project
         fields = ['id', 'title', 'level',
-                  'category','author_name', 'views', 'price'
+                  'category','author_name', 'views', 'price', 'like'
                   ]
 
 
@@ -139,7 +149,7 @@ class ProjectUploadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Project
-        exclude = ['like', 'views', 'dislikes', 'status']
+        exclude = ['like', 'views', 'dislikes', 'status', 'slug']
 
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -183,4 +193,33 @@ class AccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.UsersWallet
+        fields = ['account_name', 'account_number', 'bank', 'balance']
+
+        extra_kwargs = {
+            'balance': {
+                'read_only': True,
+            },
+        }
+
+
+class FAQSerializer(serializers.ModelSerializer):
+    """Serializer class for frequently asked questions"""
+
+    class Meta:
+        model = models.FAQ
         fields = '__all__'
+
+        extra_kwargs = {
+            'created_at': {
+                'read_only': True,
+            },
+        }
+
+
+class TransactionSerializer(serializers.ModelSerializer):
+    """Serializer class for transactions"""
+
+    class Meta:
+        model = models.Transaction
+        exclude = ['id']
+    

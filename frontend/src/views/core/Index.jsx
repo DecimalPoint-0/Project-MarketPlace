@@ -1,253 +1,211 @@
 import React, { useState, useEffect } from "react";
 import Header from "../partials/Header";
 import Footer from "../partials/Footer";
-import img1 from "../../assets/images/img1.png"
-import img2 from "../../assets/images/img2.png"
+import { Link } from "react-router-dom";
 import banner from "../../assets/images/banner.jpg";
-import vector1 from "../../assets/images/vector1.png";
-import vector2 from "../../assets/images/vector2.png";
-import vector3 from "../../assets/images/vector3.png";
-import chat1 from "../../assets/images/chat1.png";
-import chat2 from "../../assets/images/chat2.png";
-import chat3 from "../../assets/images/chat3.png";
+import join from "../../assets/images/join.png";
+import hire from "../../assets/images/hire.svg";
+import { Button } from "@material-tailwind/react";
+import apiInstance from "../../utils/axios";
+import Toast from "../../plugin/Toast";
 
+function Index() {
 
-function Index(){
+    const [categories, setCategories] = useState([])
+    const [faqs, setFaqs] = useState([])
+    const [categoryPagination, setCategoryPagination] = useState({ next: null, previous: null });
+    const [faqsPagination, setFaqsPagination] = useState({ next: null, previous: null });
+    const [loading, setLoading] = useState(false);
+
+    const fetchData = async (categoryUrl = "/categories", faqsUrl = "/faqs") => {
+        setLoading(true);
+        try {
+            const [categoryResponse, faqsResponse] = await Promise.all([
+                apiInstance.get(categoryUrl),
+                apiInstance.get(faqsUrl),
+            ]);
+
+            // Set response data for categories
+            setCategories(categoryResponse.data.results || categoryResponse.data);
+            setCategoryPagination({
+                next: categoryResponse.data.next,
+                previous: categoryResponse.data.previous,
+            });
+
+            // Set response data for FAQs
+            setFaqs(faqsResponse.data.results || faqsResponse.data);
+            setFaqsPagination({
+                next: faqsResponse.data.next,
+                previous: faqsResponse.data.previous,
+            });
+        } catch (error) {
+            console.log(error);
+            Toast("error", error.response?.data?.message || "An error occurred");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData()
+    }, [])
+
     return (
-        <div className="bg-light">
+        <>
             <Header />
 
-            {/*hero-section starts*/}
-
-            <main className="hero relative w-full h-screen">
-                {/* Background Image */}
-                <div className="absolute inset-0 bg-cover bg-center"></div>
-
-                {/* Content */}
-                <div className="hero-content-container sm:px-10 space-y-8 absolute inset-0 flex flex-col justify-center items-center text-center text-light z-10">
-                    <div className="hero-title">
-                        <h1 className="font-robot text-3xl md:text-7xl font-bold">
-                            Welcome to <span className="text-tertiary">CodeGraphics</span> 
-                        </h1>
-                    </div>
-                    <div className="hero-paragraph mt-4">
-                        <p className="text-lg sm:text-xl">
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit. 
-                            Corrupti optio repellendus unde fugit vel ex, explicabo hic, 
-                            voluptatem cumque cum veritatis rerum inventore reprehenderit at pariatur 
-                            ab minima tenetur odio voluptate possimus assumenda. Deleniti voluptas quibusdam dolores, 
-                            provident, rem optio, ratione unde modi repudiandae fugit tempora eum? Aspernatur, beatae suscipit?
-                        </p>
-                    </div>
-                    <div>
-                        <button className="btn">Explore Our Site</button>
-                    </div>
-                </div>
-            </main>
-            {/* hero-section ends */}
-
-            {/* categories of projects*/}
-            <section className="category container mx-auto py-[80px]">
-                <div className="flex flex-col space-y-4">
-                    <h5 className="text-center text-primary font-bold text-lg font-noto-sans">
-                        Categories of Projects
-                    </h5>
-                    <h1 className="text-center text-3xl font-robot text-secondary">Lorem ipsum dolor sit amet.</h1>
-                    <div className="category-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 p-8">
-                        <div className="category-item flex flex-col rounded-lg items-center bg-tertiary p-4">
-                            <img src={img1} alt="" className="h-40 hidden md:block  w-40 mx-auto rounded-full border-solid border-2 border-light" />
-                            <div className="px-2 py-4 text-primary text-center items-center">
-                                <h3 className="text-xl font-bold mb-2">Web Development</h3>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                                <button className="btn mt-2">Check Out</button>
+            <section className="p-8">
+                <div className="container m-auto max-w-6xl grid grid-cols-3 gap-6">
+                    
+                    {/* navigation categories for projects  */}
+                    <div className="">
+                        <div  className="bg-slate-100 p-4">
+                            
+                            <div className="my-2">
+                                <ul className="uppercase">
+                                    <h3 className="my-4 uppercase font-bold">Department Category</h3>
+                                        <hr className="text-white" />
+                                        {categories?.map((cat) =>(
+                                            <li className="py-2 flex justify-between items-center" key={cat?.id}>
+                                                <div>
+                                                    <i className="fas fa-list-alt pr-2"></i>
+                                                    <Link to={`/categories/${cat?.id}`}  className="hover:text-slate-400">
+                                                        {cat?.title}
+                                                    </Link>
+                                                </div>
+                                                <small className="p-1 bg-slate-400 rounded-sm px-2">{cat?.project_count ?? 0}</small>
+                                            </li>
+                                        ))}
+                                        <hr className="text-white" />
+                                </ul>
+                            </div>
+                            <div className="p-2">
+                                <button
+                                    className="hover:cursor-pointer"
+                                    onClick={() => fetchData(categoryPagination.previous, "/faqs")}
+                                    disabled={!categoryPagination.previous}
+                                >
+                                    ← Previous
+                                </button>
+                                <button
+                                    className="ml-4 hover:cursor-pointer"
+                                    onClick={() => fetchData(categoryPagination.next, "/faqs")}
+                                    disabled={!categoryPagination.next}
+                                >
+                                    Next →
+                                </button>
                             </div>
                         </div>
-                        <div className="category-item flex flex-col rounded-lg items-center bg-tertiary p-4">
-                            <img src={img2} alt="" className="hidden md:block h-40 w-40 mx-auto rounded-full border-solid border-2 border-light" />
-                            <div className="px-2 py-4 text-primary text-center items-center">
-                                <h3 className="text-xl font-bold mb-2">Web Development</h3>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                                <button className="btn mt-2">Check Out</button>
-                            </div>
-                        </div>
-                        <div className="category-item flex flex-col rounded-lg items-center bg-tertiary p-4">
-                            <img src={img1} alt="" className="hidden md:block h-40 w-40 mx-auto rounded-full border-solid border-2 border-light" />
-                            <div className="px-2 py-4 text-primary text-center items-center">
-                                <h3 className="text-xl font-bold mb-2">Web Development</h3>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                                <button className="btn mt-2">Check Out</button>
-                            </div>
-                        </div>
-                        <div className="category-item flex flex-col rounded-lg items-center bg-tertiary p-4">
-                            <img src={img2} alt="" className="hidden md:block h-40 w-40 mx-auto rounded-full border-solid border-2 border-light" />
-                            <div className="px-2 py-4 text-primary text-center items-center">
-                                <h3 className="text-xl font-bold mb-2">Web Development</h3>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                                <button className="btn mt-2">Check Out</button>
-                            </div>
-                        </div>
-                                                
-                    </div>
-                </div>
 
-            </section>
-            {/* category ends here */}
+                        {/* professional writers  */}
 
-            {/* level  */}
-            <section className="py-[80px] bg-tertiary ">
-                <div className="container mx-auto">
-                    <div className="flex flex-col space-y-4">
-                        <h5 className="text-center text-primary font-bold text-lg font-noto-sans">
-                            Our Project Levels
-                        </h5>
-                        <h1 className="text-center text-3xl font-robot text-secondary">Lorem ipsum dolor sit amet.</h1>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-8 gap-4">
-                            <div className="p-8 flex flex-col justify-center items-center space-y-4 bg-light">
-                                <h1 className="font-bold font-robot text-3xl text-primary">HND</h1>
-                                <p className="text-center">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Consequatur, molestiae.</p>
-                                <div>
-                                    <a href="" className="btn-secondary">Explore</a>
-                                </div>
+                        <div className="py-8 flex flex-col space-y-4 font-bold">
+                            <div>
+                                <h1 className="uppercase text-center">Are you a passionate writer? Here's an earning opportunity for you ? </h1>
+                                <img src={join} alt="" className="h-40 mx-auto" />
                             </div>
-                            <div className="p-8 flex flex-col justify-center items-center space-y-4 bg-light">
-                                <h1 className="font-bold font-robot text-3xl text-primary">BSC</h1>
-                                <p className="text-center">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Consequatur, molestiae.</p>
-                                <div>
-                                    <a href="" className="btn-secondary">Explore</a>
-                                </div>
-                            </div>
-                            <div className="p-8 flex flex-col justify-center items-center space-y-4 bg-light">
-                                <h1 className="font-bold font-robot text-3xl text-primary">NCE</h1>
-                                <p className="text-center">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Consequatur, molestiae.</p>
-                                <div>
-                                    <a href="" className="btn-secondary">Explore</a>
-                                </div>
-                            </div>
+                            <h4 className="text-slate-600">Follow these simple steps</h4>
+                            <ol className="list-decimal ml-8 flex flex-col space-y-2">
+                                <li>Register with us <a href="" className="text-blue-600">Click Now</a> </li>
+                                <li>Get Verified</li>
+                                <li>Upload your materials</li>
+                                <li>Earn each your project is purchased</li>
+                                <li>A lifetime earning opportunity just for you</li>
+                            </ol>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            {/* about us  */}
-            <section className="py-[80px] bg-light">
-                <div className="container mx-auto p-8 grid lg:grid-cols-2 gap-x-12">
-                    <div className="left rounded-xl">
-                        <img src={banner} alt="" className="h-full w-full rounded-xl" />
-                    </div>
-                    <div className="right flex flex-col space-y-8">
-                        <h5 className="text-primary font-bold text-center ">About CodeGraphics</h5>
-                        <h1 className="font-robot font-bold text-4xl text-secondary">CodeGraphics Market Place Your No. One home of quality projects</h1>
-                        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. 
-                            Pariatur dolorem vitae voluptas et quos quam harum deserunt 
-                            illum qui dolore, voluptate beatae, natus similique perferendis 
-                            quaerat saepe iure officia adipisci. Alias enim possimus molestiae. 
-                            Ex mollitia cum vel nam distinctio ullam culpa! 
-                            Quia porro veritatis accusamus, magnam id cupiditate. Rem.</p>
-                        <div className="md:grid md:grid-cols-4 gap-x-4 hidden">
-                            <div className="p-4 bg-tertiary text-center">
-                                <h5 className="text-primary text-bold">1000</h5>
-                                <small>Happy Customers</small>
-                            </div>
-                            <div className="p-4 bg-tertiary text-center">
-                                <h5 className="text-primary text-bold">1000</h5>
-                                <small>Projects</small>
-                            </div>
-                            <div className="p-4 bg-tertiary text-center">
-                                <h5 className="text-primary text-bold">4</h5>
-                                <small>Services</small>
-                            </div>
+                    {/* projects section  */}
+                    <div className="col-span-2">
+                        <div className="bg-slate-100 shadow-md mb-6">
+                            <h1 className=" p-4 text-white bg-primary">GET YOUR PROJECT TOPICS IN JUST FEW STEPS </h1>
+                            <ul className="mx-4 py-4 flex flex-col space-y-2 ">
+                                <li className="pl-2">Get three (3) topics of intrest from our site</li>
+                                <li className="pl-2">Submit three topics to your institution-based supervisor</li>
+                                <li className="pl-2">Ensure that your supervisor picks one (1)</li>
+                                <li className="pl-2">Revisit this site to purchase the material of the project topic approved</li>
+                                <li className="pl-2">If your project topic was changed, dont worry, you can hire a professional 
+                                    <a href="" className="text-blue-600">Click Here</a> 
+                                </li>
+                            </ul>
                         </div>
-                        <div>
-                            <a href="" className="btn-secondary inline">Know More</a>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
-            <section className="why-us py-[80px]">
-                <div className="container mx-auto flex flex-col space-y-4">
-                    <h5 className="text-center text-primary font-bold text-lg font-noto-sans">
-                            Why Us
-                    </h5>
-                        <h1 className="text-center text-3xl font-robot text-secondary">Lorem ipsum dolor sit amet.</h1>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-light p-8">
-                        <div className="p-4 flex flex-col justify-center items-center space-y-4 bg-tertiary rounded-2xl">
-                            <img src={vector1} className="h-20 w-20" alt="" />
-                            <p className="font-bold text-primary">We are <span className="text-2xl text-secondary">100%</span> Reliable</p>
-                        </div>
-                        <div className="p-4 flex flex-col justify-center items-center space-y-4 bg-tertiary rounded-2xl">
-                            <img src={vector2} className="h-20 w-20" alt="" />
-                            <p className="font-bold text-primary">less than <span className="text-2xl text-secondary">10%</span>Plagiarism</p>
-                        </div>
-                        <div className="p-4 flex flex-col justify-center items-center space-y-4 bg-tertiary rounded-2xl">
-                            <img src={vector3} className="h-20 w-20" alt="" />
-                            <p className="font-bold text-primary">less than <span className="text-2xl text-secondary">10%</span>Plagiarism</p>
-                        </div>
-                        <div className="p-4 flex flex-col justify-center items-center space-y-4 bg-tertiary rounded-2xl">
-                            <img src={vector3} className="h-20 w-20" alt="" />
-                            <p className="font-bold text-primary">less than <span className="text-2xl text-secondary">10%</span>Plagiarism</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                        {/* frequently asked question  */}
 
-            <section className="testimonials">
-                <div className="flex flex-col space-y-4">
-                    <h5 className="text-center text-primary font-bold text-lg font-noto-sans">Testimonials</h5>
-                    <h1 className="text-center text-3xl font-robot text-secondary">Lorem ipsum dolor sit amet.</h1>
-                    <div className="p-8 bg-tertiary">
-                        <div className="container mx-auto p-8">
-                            <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                                <div className="bg-light p-8 flex flex-col space-y-6 rounded-lg">
-                                    <div className="flex space-x-4 items-center">
-                                        <img src={chat1} alt="" />
-                                        <div className="flex flex-col space-y-2">
-                                            <h1 className="font-semibold text-xl">Abdulmalik</h1>
-                                            <p>Client</p>
-                                        </div>
-                                    </div>
-                                    <hr className="text-secondary" />
-                                    <p className="text-justify">Lorem ipsum dolor sit amet consectetur adipisicing elit. Incidunt expedita nesciunt 
-                                        necessitatibus sapiente beatae nostrum.
+                        <div className="flex flex-col space-y-2 my-4 ">
+                            <h1 className="p-4 text-white bg-primary uppercase">Frequently asked question </h1>
+                            
+                            <hr className="text-white pb-2" />
+                            {faqs?.map((f) => (
+                                <div className="p-4 bg-tertiary shadow-lg">
+                                    <h3 className='font-bold mb-2 flex items-center'> 
+                                        <i className="fas fa-question text-primary font-bold p-2"></i> 
+                                        <h3>{f?.question}</h3>
+                                    </h3>
+                                    <p className="flex items-center space-x-2">
+                                        <i className="fas fa-reply text-primary"></i> 
+                                        <h5>{f?.answer}</h5>
                                     </p>
                                 </div>
-                                <div className="bg-tertiary p-8 flex flex-col space-y-6 rounded-lg">
-                                    <div className="flex space-x-4 items-center">
-                                        <img src={chat2} alt="" />
-                                        <div className="flex flex-col space-y-2">
-                                            <h1 className="font-semibold text-xl">Abdulmalik</h1>
-                                            <p>Client</p>
-                                        </div>
-                                    </div>
-                                    <hr className="text-secondary" />
-                                    <p className="text-justify">Lorem ipsum dolor sit amet consectetur adipisicing elit. Incidunt expedita nesciunt 
-                                        necessitatibus sapiente beatae nostrum.
-                                    </p>
-                                </div>
-                                <div className="bg-light p-8 flex flex-col space-y-6 rounded-lg">
-                                    <div className="flex space-x-4 items-center">
-                                        <img src={chat3} alt="" />
-                                        <div className="flex flex-col space-y-2">
-                                            <h1 className="font-semibold text-xl">Abdulmalik</h1>
-                                            <p>Client</p>
-                                        </div>
-                                    </div>
-                                    <hr className="text-secondary" />
-                                    <p className="text-justify">Lorem ipsum dolor sit amet consectetur adipisicing elit. Incidunt expedita nesciunt 
-                                        necessitatibus sapiente beatae nostrum.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                            ))}
+                            <hr className="text-white pt-2" />
 
+                            <div className="p-2">
+                                <button
+                                    className="hover:cursor-pointer"
+                                    onClick={() => fetchData("/categories", faqsPagination.previous)}
+                                    disabled={!faqsPagination.previous}
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    className="ml-4 hover:cursor-pointer"
+                                    onClick={() => fetchData("/categories", faqsPagination.next)}
+                                    disabled={!faqsPagination.next}
+                                >
+                                    Next
+                                </button>
+                            </div>
+                            <h1></h1>
+                        </div>
+  
+                    </div>
+                </div>
+
+                <div className="container m-auto max-w-6xl grid grid-cols-2">
+                    <div> 
+                        <h1 className="p-4 uppercase bg-primary text-white">Our Blog Posts</h1>
+                        <div className="my-2 p-4 bg-slate-100 shadow-md">
+                            <h3 className="font-bold">DELIVERING A GOOD PRESENTATION: TIPS FOR A GOOD PROJECT DEFENCE</h3>
+                            <small className="text-slate-500">Posted on 06-01-25</small>
+                            <p className="truncate my-2">The educational curriculum states that in order to be awarded a degree after the graduating, there is need to carry out a research in a field of study. Consequently, this is done at the final year level in all university institutions. A lot of students have challenge when it comes to choosing a research topic. This is as a result of the fact that they lack knowledge on the
+                            </p>
+                            <a href="" className="p-2 bg-slate-300 text-white text-sm">Read more</a>
+                        </div>
+                        <div className="my-2 p-4 bg-slate-100 shadow-md">
+                            <h3 className="font-bold">DELIVERING A GOOD PRESENTATION: TIPS FOR A GOOD PROJECT DEFENCE</h3>
+                            <small className="text-slate-500">Posted on 06-01-25</small>
+                            <p className="truncate my-2">The educational curriculum states that in order to be awarded a degree after the graduating, there is need to carry out a research in a field of study. Consequently, this is done at the final year level in all university institutions. A lot of students have challenge when it comes to choosing a research topic. This is as a result of the fact that they lack knowledge on the
+                            </p>
+                            <a href="" className="p-2 bg-slate-300 text-white text-sm">Read more</a>
+                        </div>
+                       
+                    </div>
+
+                    <div className="relative text-center">
+                        <h1 className="text-center uppercase font-bold mb-4 text-2xl text-primary">Want to hire a write?</h1>
+                        <img src={hire}  alt="" />
+                        <a className="absolute top-1/2 left-1/2 py-2 px-4 rounded-md bg-secondary text-white">Click here</a>
                     </div>
                 </div>
             </section>
+
 
             <Footer />
 
-        </div>
+        </>
     );
+
 }
 
-export default Index
+export default Index;

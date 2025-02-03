@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from '../../assets/images/logo.png';
-import hamburger from '../../assets/images/hamburger.png';
+
 function Header() {
 
     const NavLinks = () => {
         return (
             <>
-                <li className="navitem"><Link className="active">Category</Link></li>
-                <li className="navitem"><Link>Projects</Link></li>
-                <li className="navitem"><Link>About Us</Link></li>
-                <li className="navitem"><Link>Contact Us</Link></li>
+                <li className="navitem"><Link className="active" to='/dashboard/'>Home</Link></li>
+                <li className="navitem"><Link>Category</Link></li>
+                <li className="navitem"><Link to='/projects/'>Projects</Link></li>
+                <li className="navitem"><Link to="/about-us/" >About Us</Link></li>
+                <li className="navitem"><Link to="/sign-in/">Sign in</Link></li>
+                <li className="navitem"><Link to="/sign-up/">Sign Up</Link></li>
             </>
         )
     }
@@ -27,7 +29,7 @@ function Header() {
     return (
         <>
             <header className="navbar">
-                <div className=" flex justify-between p-6 container mx-auto ">
+                <div className=" flex justify-between p-2 container mx-auto ">
                     <div className="flex justify-between items-center space-x-2">
                         <img className="logo" src={logo} />
                         <div className="brandname">Code <span className="text-secondary">Graphics</span></div>

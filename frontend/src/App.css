@@ -5,7 +5,7 @@
 }
 
 .logo{
-    @apply h-12 w-12;
+    @apply h-10 w-10;
 }
 
 .brandname{
@@ -16,7 +16,7 @@
     @apply md:flex hidden justify-between md:self-center space-x-4;
 }
 .mobile-nav{
-    @apply flex-row space-y-4 p-4 bg-tertiary md:hidden z-30 sticky top-0 w-full;
+    @apply flex-row space-y-8 p-4 bg-tertiary md:hidden z-30 sticky top-0 w-full;
 }
 .navitem:hover {
     @apply text-secondary transition-colors duration-500;
@@ -42,7 +42,6 @@
     z-index: 0;
     opacity: 0.6;
 }
-
 
 .btn{
     @apply rounded-full px-4 py-2 bg-secondary text-light border-none;

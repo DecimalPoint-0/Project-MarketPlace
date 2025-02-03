@@ -21,4 +21,5 @@ urlpatterns = [
     path('stats', views.UserStatsAPIView.as_view()),
     path('wallet', views.MyAccountAPIView.as_view()),
     path('cashout', views.CashOutAPIView.as_view()),
+    path('transactions', views.TransactionsAPIView.as_view()),
 ]

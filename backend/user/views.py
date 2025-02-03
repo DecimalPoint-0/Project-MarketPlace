@@ -1,21 +1,29 @@
-from django.shortcuts import render
-from rest_framework_simplejwt.authentication import JWTAuthentication
+"""
+API Views associated to user
+"""
+from decimal import Decimal
 
+# Django import 
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+from django.core.cache import cache
+from rest_framework.pagination import PageNumberPagination
 
+# local imports from core
 from core import models
 from core import serializers
 from core import permissions
 
 # Restframework
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, APIView
+from rest_framework.decorators import APIView
 from rest_framework import generics, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.decorators import api_view, permission_classes
 
+# documentation imports 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
@@ -35,7 +43,20 @@ class UserProjectAPIView(viewsets.ModelViewSet):
         return serializers.ProjectSerializer
 
     def get_queryset(self):
-        return self.queryset.filter(author=self.request.user)
+        """Filter projects based on user"""
+
+        cache_key = f"projects_{self.request.user.id}" # set cache key 
+        projects = cache.get(cache_key) # get key from cache
+
+        if not projects: #checks if the key exists
+            # it not in cache
+            projects = models.Project.objects.filter(
+                author=self.request.user
+            )
+            print(projects)
+            # set project to cache 
+            cache.set(cache_key, projects, timeout=300)  # Cache for 5 minutes
+        return projects
     
     def perform_create(self, serializer):
         """Create a new project"""
@@ -50,10 +71,10 @@ class MyProfileAPIView(generics.RetrieveUpdateAPIView):
     serializer_class = serializers.UserProfileSerializer
 
     def get_object(self):
-        return models.User.objects.get(id=self.request.user.id)
+        return get_object_or_404(models.User, id=self.request.user.id)
 
 
-class ReferalDashboard(generics.ListAPIView):
+class ReferalDashboardAPIView(generics.ListAPIView):
     """API for list of referals available"""
 
     authentication_classes = [JWTAuthentication]
@@ -63,39 +84,27 @@ class ReferalDashboard(generics.ListAPIView):
         pass
 
 
-class ApprovedProjectsAPIView(generics.ListAPIView):
-    """API View for list of approved projects"""
+class ProjectStatusAPIView(generics.ListAPIView):
+    """Base class for project status views."""
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.ProjectDetailSerializer
 
     def get_queryset(self):
-        return models.Project.objects.filter(author=self.request.user, 
-                                             status='Approved')
+        return models.Project.objects.filter(
+            author=self.request.user, status=self.status
+        )
+    
 
-class PendingProjectAPIView(generics.ListAPIView):
-    """API VIew for list of projects awaiting approval"""
+class ApprovedProjectsAPIView(ProjectStatusAPIView):
+    status = 'Approved'
 
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-    serializer_class = serializers.ProjectDetailSerializer
+class PendingProjectAPIView(ProjectStatusAPIView):
+    status = 'Pending'
 
-    def get_queryset(self):
-        return models.Project.objects.filter(author=self.request.user, 
-                                             status='Pending')
-
-
-class DeclinedProjectsAPIView(generics.ListAPIView):
-    """API VIew for list of projects declined"""
-
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-    serializer_class = serializers.ProjectDetailSerializer
-
-    def get_queryset(self):
-        return models.Project.objects.filter(author=self.request.user, 
-                                             status='Declined')
+class DeclinedProjectsAPIView(ProjectStatusAPIView):
+    status = 'Declined'
     
 class NotificationAPIView(generics.ListAPIView):
     """API View for Notifications"""
@@ -117,7 +126,7 @@ class UserStatsAPIView(generics.RetrieveAPIView):
     serializer_class = serializers.AuthorDetailsSerializer
 
     def get_object(self):
-        return models.User.objects.get(id=self.request.user.id)
+        return get_object_or_404(models.User, id=self.request.user.id)
 
 
 class NotificationSeenAPIView(APIView):
@@ -127,15 +136,21 @@ class NotificationSeenAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        noti_id = self.kwargs['noti_id']
-        notification = models.Notification.objects.get(id=noti_id, 
-                                         status=False)
+        noti_id = self.kwargs.get('noti_id')
+        notification = get_object_or_404(models.Notification, id=noti_id)
+        
+        if notification.status:
+            return Response(
+                {'message': 'Notification already marked as seen.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         notification.status = True
         notification.save()
         return Response({'message': 'Notifcation Marked as seen'}, status=status.HTTP_200_OK)
 
 
-class MyAccountAPIView(generics.RetrieveAPIView):
+class MyAccountAPIView(generics.RetrieveUpdateAPIView):
     """API view for user's account"""
 
     authentication_classes = [JWTAuthentication]
@@ -143,8 +158,18 @@ class MyAccountAPIView(generics.RetrieveAPIView):
     serializer_class = serializers.AccountSerializer
 
     def get_object(self):
-        return models.UsersWallet.objects.get(user=self.request.user)
+        return get_object_or_404(models.UsersWallet, user=self.request.user)
 
+
+def validate_cashout_data(data):
+    try:
+        amount = Decimal(data.get('amount', 0))
+        if amount <= 0:
+            raise ValidationError("Amount must be positive.")
+        return amount
+    except (TypeError, ValueError,  Decimal.InvalidOperation):
+        raise ValidationError("Invalid withdrawal amount.")
+    
 
 class CashOutAPIView(APIView):
     """API View for user cashout"""
@@ -152,38 +177,49 @@ class CashOutAPIView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'amount': openapi.Schema(type=openapi.TYPE_NUMBER),
-            }
-        )
-    )
-
     def post(self, request, *args, **kwargs):
+        amount = validate_cashout_data(request.data)
+        account = get_object_or_404(models.UsersWallet, user=request.user)
 
-        amount = self.request.data['amount']
-        account = models.UsersWallet.objects.get(user=self.request.user)
+        if account.balance < amount:
+            return Response(
+                {'message': 'Insufficient balance.'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        if account.balance > 0.0:
-            if account.balance >= amount:
-                account.balance -= amount
-                account.save()
-                models.CashOut.objects.create(
-                    amount=amount,
-                    user=self.request.user,
-                    status='Pending'
-                )
-                return Response({'message': 'Cash Out is pending'}, status=status.HTTP_200_OK)
-            else:
-                return Response({'message': 'Cannot Withdraw more than available balance'}, 
-                                status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'message': 'Account Balance is too low'}, 
-                                status=status.HTTP_400_BAD_REQUEST)
+        account.balance -= amount
+        account.save()
 
-    def get(self, request, *args, **kwargs):
-        queryset = models.CashOut.objects.filter(user=self.request.user)
-        data = list(queryset.values())
-        return JsonResponse(data, safe=False)
+        models.CashOut.objects.create(
+            amount=amount, user=request.user, status='Pending'
+        )
+        return Response({'message': 'Cashout request submitted.'}, status=status.HTTP_200_OK)
+    
+    # def get(self, request, *args, **kwargs):
+    #     try:
+    #         queryset = models.CashOut.objects.filter(user=self.request.user)
+    #         data = list(queryset.values())
+    #         return JsonResponse(data, safe=False)
+    #     except Exception as e:
+    #         return JsonResponse(
+    #             {'message': 'Failed to fetch cashout data.'},
+    #             status=status.HTTP_500_INTERNAL_SERVER_ERROR
+    #         )
+
+
+class TransactionsAPIView(generics.ListAPIView):
+    """API View for transactions (cashouts and sales)"""
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.TransactionSerializer
+
+    def get_queryset(self):
+        try: 
+            return models.Transaction.objects.filter(user=self.request.user).order_by('-date')
+        except Exception as e:
+            return JsonResponse(
+                {'message': 'Failed to fetch transaction history'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    

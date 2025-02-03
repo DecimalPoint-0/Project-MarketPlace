@@ -17,6 +17,9 @@ from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.pagination import PageNumberPagination
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from decimal import Decimal
@@ -55,7 +58,7 @@ class ProjectDetailsAPIView(generics.RetrieveAPIView):
 
     serializer_class = serializers.ProjectDetailSerializer
     permission_classes = [AllowAny]
-    queryset = models.Project.objects.filter(status='Approved')
+    queryset = models.Project.objects.all()
     
     def get_object(self):
         id = self.kwargs['id']
@@ -68,18 +71,22 @@ class ProjectDetailsAPIView(generics.RetrieveAPIView):
 class InitiatePaymentAPIView(APIView):
     """API View for processing purchase"""
 
-    permission_classes = [AllowAny]
+    permission_classes  = [AllowAny] 
 
     def post(self, request, *args, **kwargs):
         project_id = self.kwargs['id']
         project = get_object_or_404(models.Project, id=project_id)
         amount = int(project.price * 100)
-        if request.user.is_authenticated:
-            email = self.request.user.email
-        else:
-            email = request.data.get('email')
-            print(request.user)
-        
+
+        email = request.data.get('email')
+
+        if not email:
+            return JsonResponse({'error': 'Email is required for unauthenticated users.'}, status=400)
+        try:
+            validate_email(email) 
+        except ValidationError:
+            return JsonResponse({'error': 'Invalid email format.'}, status=400)
+
         headers = {
             "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
             "Content-Type": "application/json",
@@ -99,14 +106,26 @@ class InitiatePaymentAPIView(APIView):
 
             # Check if request to Paystack was successful
             if response.status_code == 200 and response_data.get("status"):
-                # initiate payment in the database
-                models.Payments.objects.get_or_create(
-                    user=self.request.user,
+
+                auth_user = models.User.objects.get(email=email)
+                if auth_user:
+                    # intitiate payment for authentication user
+                    models.Payments.objects.get_or_create(
+                    user=auth_user,
                     item=project,
                     amount= Decimal(amount / 100),
                     status="Pending",
                     payment_reference=response_data['data']['reference']
                 )
+                else:
+                # initiate payment in the database
+                    models.Payments.objects.get_or_create(
+                        email=email,
+                        item=project,
+                        amount= Decimal(amount / 100),
+                        status="Pending",
+                        payment_reference=response_data['data']['reference']
+                    )
                 return JsonResponse(response_data)
             else:
                 return JsonResponse(
@@ -220,11 +239,13 @@ class AuthorDetailsAPIView(generics.RetrieveAPIView):
         email = self.kwargs['email']
         return self.queryset.get(email=email)
 
+
 class Categories(generics.ListAPIView):
     """API View for clisting available categories"""
 
     permission_classes = [AllowAny]
     serializer_class = serializers.CategorySerializer
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         return models.Category.objects.all()
@@ -292,6 +313,18 @@ class DislikeProject(APIView):
                 noti_for=project.author,
             )
             return Response({'message': 'Disliked'}, status=status.HTTP_200_OK)
+
+
+class FAQSAPIView(generics.ListAPIView):
+    """API view for frequently asked questions"""
+
+    permission_classes = [AllowAny]
+    serializer_class = serializers.FAQSerializer
+    paginator = PageNumberPagination()
+    paginator.page_size = 4
+
+    def get_queryset(self):
+        return models.FAQ.objects.all()
 
 
 class Reviews(APIView):
