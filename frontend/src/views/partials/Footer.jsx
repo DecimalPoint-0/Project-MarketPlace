@@ -1,69 +1,124 @@
 import React from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFacebook, faTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons';
-import { faEnvelopeOpen, faCompass } from '@fortawesome/free-regular-svg-icons';
+import { faFacebook, faTwitter, faInstagram, faLinkedin } from '@fortawesome/free-brands-svg-icons';
+import { faEnvelopeOpen, faPhone, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 import logo from '../../assets/images/logo.png';
 
 function Footer() {
     return (
-        <footer className="bg-primary text-light">
-            <div className="container mx-auto p-8 grid md:grid-cols-3 gap-x-8">
-                <div className=" hidden col-md-5 mb-3 mb-md-0 md:flex flex-col space-y-8 align-middle items-center px-8">
-                    <div className="flex flex-col items-center">
-                        <img src={logo} className="h-10 w-10" alt="" /> 
-                        <span>CodeGraphics</span>
+        <footer className="bg-gradient-primary text-light">
+            <div className="container max-w-7xl mx-auto px-8 py-16">
+                <div className="grid md:grid-cols-4 gap-8 mb-12">
+                    {/* Brand Section */}
+                    <div className="flex flex-col space-y-4">
+                        <div className="flex items-center gap-3">
+                            <img src={logo} className="h-12 w-12 rounded-lg" alt="CodeGraphics Logo" /> 
+                            <div>
+                                <h3 className="font-bold text-xl">Code <span className="text-secondary">Graphics</span></h3>
+                                <p className="text-sm text-slate-300">Premium Project Materials</p>
+                            </div>
+                        </div>
+                        <p className="text-slate-300 text-sm leading-relaxed">
+                            Your trusted platform for quality academic project materials. Connect with researchers, earn commissions, and elevate your academic success.
+                        </p>
+                        <div className="flex gap-3 pt-2">
+                            <a href="#" className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-primary hover:bg-white transition">
+                                <FontAwesomeIcon icon={faFacebook} />
+                            </a>
+                            <a href="#" className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-primary hover:bg-white transition">
+                                <FontAwesomeIcon icon={faTwitter} />
+                            </a>
+                            <a href="#" className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-primary hover:bg-white transition">
+                                <FontAwesomeIcon icon={faInstagram} />
+                            </a>
+                            <a href="#" className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-primary hover:bg-white transition">
+                                <FontAwesomeIcon icon={faLinkedin} />
+                            </a>
+                        </div>
                     </div>
-                    <small className="text-center">Lorem ipsum, dolor sit amet consectetur adipisicing elit. Quo odio deleniti ipsa, aspernatur illum porro..</small>
-                    <div className="social-links flex space-x-2">
-                        <FontAwesomeIcon icon={faFacebook} className="p-2 bg-light text-secondary rounded-full" />
-                        <FontAwesomeIcon icon={faTwitter} className="p-2 bg-light text-secondary rounded-full"  />
-                        <FontAwesomeIcon icon={faInstagram} className="p-2 bg-light text-secondary rounded-full" />
+
+                    {/* Contact Info */}
+                    <div className="flex flex-col space-y-6">
+                        <h4 className="text-lg font-bold text-secondary">Contact Us</h4>
+                        <div className="flex gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-secondary bg-opacity-20 flex items-center justify-center flex-shrink-0">
+                                <FontAwesomeIcon icon={faEnvelopeOpen} className="text-secondary" />
+                            </div>
+                            <div className="text-sm">
+                                <p className="text-slate-400">Email</p>
+                                <a href="mailto:support@codegraphics.com" className="text-light hover:text-secondary transition">support@codegraphics.com</a>
+                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-secondary bg-opacity-20 flex items-center justify-center flex-shrink-0">
+                                <FontAwesomeIcon icon={faPhone} className="text-secondary" />
+                            </div>
+                            <div className="text-sm">
+                                <p className="text-slate-400">Phone</p>
+                                <a href="tel:09012024759" className="text-light hover:text-secondary transition">+234 (0) 901 202 4759</a>
+                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-secondary bg-opacity-20 flex items-center justify-center flex-shrink-0">
+                                <FontAwesomeIcon icon={faMapMarkerAlt} className="text-secondary" />
+                            </div>
+                            <div className="text-sm">
+                                <p className="text-slate-400">Address</p>
+                                <p className="text-light">Felele, Lokoja, Kogi State, Nigeria</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Quick Links */}
+                    <div className="flex flex-col space-y-4">
+                        <h4 className="text-lg font-bold text-secondary">Quick Links</h4>
+                        <nav className="flex flex-col space-y-2">
+                            <a href="#" className="text-slate-300 hover:text-secondary transition flex items-center gap-2">
+                                <i className="fas fa-chevron-right text-xs"></i> About Us
+                            </a>
+                            <a href="#" className="text-slate-300 hover:text-secondary transition flex items-center gap-2">
+                                <i className="fas fa-chevron-right text-xs"></i> Contact Us
+                            </a>
+                            <a href="#" className="text-slate-300 hover:text-secondary transition flex items-center gap-2">
+                                <i className="fas fa-chevron-right text-xs"></i> Privacy Policy
+                            </a>
+                            <a href="#" className="text-slate-300 hover:text-secondary transition flex items-center gap-2">
+                                <i className="fas fa-chevron-right text-xs"></i> Terms & Conditions
+                            </a>
+                        </nav>
+                    </div>
+
+                    {/* Support */}
+                    <div className="flex flex-col space-y-4">
+                        <h4 className="text-lg font-bold text-secondary">Support</h4>
+                        <nav className="flex flex-col space-y-2">
+                            <a href="#" className="text-slate-300 hover:text-secondary transition flex items-center gap-2">
+                                <i className="fas fa-chevron-right text-xs"></i> Help Center
+                            </a>
+                            <a href="#" className="text-slate-300 hover:text-secondary transition flex items-center gap-2">
+                                <i className="fas fa-chevron-right text-xs"></i> Cookie Policy
+                            </a>
+                            <a href="#" className="text-slate-300 hover:text-secondary transition flex items-center gap-2">
+                                <i className="fas fa-chevron-right text-xs"></i> Booking Policy
+                            </a>
+                            <a href="#" className="text-slate-300 hover:text-secondary transition flex items-center gap-2">
+                                <i className="fas fa-chevron-right text-xs"></i> FAQ
+                            </a>
+                        </nav>
                     </div>
                 </div>
-                <div className="contact flex flex-col space-y-4">
-                    <div className="flex space-x-4 border-b-secondary">
-                        <FontAwesomeIcon icon={faEnvelopeOpen} className="text-light rounded-full text-3xl" />
-                        <div>
-                            <h5 className="font-bold font-robot text-secondary">Email</h5>
-                            <p>support@codegraphics.com</p>
-                        </div>
-                    </div>
-                    <hr className="text-light" />
-                    <div className="flex space-x-4">
-                        <FontAwesomeIcon icon={faEnvelopeOpen} className="text-light rounded-full text-3xl" />
-                        <div>
-                            <h5 className="font-bold font-robot text-secondary">Phone</h5>
-                            <p>09012024759</p>
-                        </div>
-                    </div>
-                    <hr className="text-light" />
-                    <div className="flex space-x-4">
-                        <FontAwesomeIcon icon={faCompass} className="text-light rounded-full text-3xl" />
-                        <div>
-                            <h5 className="font-bold font-robot text-secondary">Address</h5>
-                            <p>Felele, Lokoja Kogi State</p>
-                        </div>
-                    </div>
-                   
-                </div>
-                <div className="col-md-4 flex flex-col space-y-4">
-                    <h1 className="text-secondary text-2xl font-bold">Quick links</h1>
-                    <div className=" flex space-x-8 pl-4">
-                        <div>
-                            <ul className="flex flex-col space-y-4">
-                                <li>About Us</li>
-                                <li>Cookie Policy</li>
-                                <li>Booking Policy</li>
-                                <li>Contact Us</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <ul className="flex flex-col space-y-4">
-                                <li>Privacy Policy</li>
-                                <li>Terms and Condition</li>
-                                <li>Sign Up</li>
-                                <li>Sign In</li>
-                            </ul>
+
+                {/* Divider */}
+                <div className="border-t border-slate-700 pt-8">
+                    {/* Bottom Content */}
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <p className="text-slate-400 text-sm">
+                            &copy; 2024 Code Graphics. All rights reserved.
+                        </p>
+                        <div className="flex gap-6">
+                            <a href="#" className="text-slate-400 hover:text-secondary text-sm transition">Privacy</a>
+                            <a href="#" className="text-slate-400 hover:text-secondary text-sm transition">Terms</a>
+                            <a href="#" className="text-slate-400 hover:text-secondary text-sm transition">Cookies</a>
                         </div>
                     </div>
                 </div>

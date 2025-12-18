@@ -4,14 +4,14 @@ Django settings for backend project.
 
 from pathlib import Path
 import os
-from dotenv import read_dotenv
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 from datetime import timedelta
 
 # Load environment variables from the .env file
-read_dotenv()
+load_dotenv()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY')
@@ -279,3 +279,4 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_FROM_ADDRESS = os.environ.get("EMAIL_FROM_ADDRESS")
+

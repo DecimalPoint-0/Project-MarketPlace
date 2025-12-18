@@ -1,24 +1,33 @@
 import React, { useState, useEffect } from "react";
-import Home from './Home'
 import AdminNavBar from "./AdminNavBar";
 import LeftNavBar from "./LeftNavBar";
-import chat1 from "../../assets/images/chat1.png";
-import navy_bg from "../../assets/images/navy_bg.jpg";
-import apiInstance from "../../utils/axios";
-import useUserData from "../../plugin/useUserData";
+import '@fortawesome/fontawesome-free/css/all.css';
 import Cookies from 'js-cookie';
-import Moment from "../../plugin/Moment";
 import Toast from "../../plugin/Toast";
-import { Button } from "@material-tailwind/react";
+import useAxios from "../../utils/useAxios";
 
 function Wallet(){
 
     const accessToken = Cookies.get('access_token');
-    const [wallet, setWallet] = useState([])
+    const [wallet, setWallet] = useState({
+        balance: 0,
+        account_name: '',
+        account_number: '',
+        bank: ''
+    })
 
     const [cashout, setCashout] = useState({
-        'amount': parseFloat(''),
+        amount: '',
     })
+
+    const [account, setAccount] = useState({
+        account_name: '',
+        account_number: '',
+        bank: ''
+    })
+
+    const [isLoading, setIsLoading] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     const handleAmountChange = (event) => {
         setCashout({
@@ -26,36 +35,29 @@ function Wallet(){
             [event.target.name]: event.target.value,
         });
     }
-    
-    const [account, setAccount] = useState({
-        'account_name': '',
-        'account_number': '',
-        'bank': ''
-    })
-
 
     const handlecashOut = async (event) => {
         event.preventDefault();
 
-        const formData = new FormData()
+        if (!cashout.amount || cashout.amount <= 0) {
+            Toast('error', 'Please enter a valid amount')
+            return
+        }
 
+        const formData = new FormData()
         formData.append("amount", cashout.amount)
 
         try {
             setIsLoading(true)
-            const response = await apiInstance.post(`user/cashout`,  formData,
-                { headers: { 
-                    "Content-Type": "multipart/form-data",
-                    Authorization: `Bearer ${accessToken}`
-                }}
-            )
+            const response = await useAxios.axiosInstance.post(`user/cashout`, formData)
             Toast('success', "Cashout Processed Successfully")
+            setCashout({ amount: '' })
             setIsLoading(false)
             fetchWallet()
-
         } catch (error) {
             console.log(error)
-            Toast('error', error.response?.data?.message || 'An error occured')
+            Toast('error', error.response?.data?.message || 'An error occurred')
+            setIsLoading(false)
         }
     }
 
@@ -70,41 +72,41 @@ function Wallet(){
         event.preventDefault();
         
         const formData = new FormData()
-        
         formData.append("account_name", account.account_name)
         formData.append("account_number", account.account_number)
         formData.append("bank", account.bank)
-        formData.append("balance", parseInt('20000'))
         
         try {
             setIsLoading(true)
-            const response = await apiInstance.patch(`user/wallet`,  formData,
-                { headers: { 
-                    "Content-Type": "multipart/form-data",
-                    Authorization: `Bearer ${accessToken}`
-                }}
-            )
+            const response = await useAxios.axiosInstance.patch(`user/wallet`, formData)
             Toast('success', "Account Details Updated Successfully")
             setIsLoading(false)
             fetchWallet()
-
         } catch (error) {
             console.log(error)
+            Toast('error', 'Error updating account details')
+            setIsLoading(false)
         }
-
     }
-
-    const [isLoading, setIsLoading] = useState(false);
 
     const fetchWallet = async () => {
         try {
-            const response = await apiInstance.get('user/wallet', 
-                { headers: { Authorization: `Bearer ${accessToken}` } }
-            )
+            const response = await useAxios.axiosInstance.get('user/wallet')
             setWallet(response.data)
+            setAccount({
+                account_name: response.data.account_name || '',
+                account_number: response.data.account_number || '',
+                bank: response.data.bank || ''
+            })
         } catch (error) {
             console.log(error)
         }
+    }
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(wallet.account_number || '')
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
     }
 
     useEffect(() =>{
@@ -115,113 +117,196 @@ function Wallet(){
         <>
             <AdminNavBar />
 
-                <main className="flex">
+            <main className="flex">
+                <LeftNavBar />
+
+                {/* Main Content */}
+                <div className="flex-1 md:ml-64 pt-6 px-4 md:px-8 pb-8 bg-slate-50 min-h-[calc(100vh-64px)]">
+                    <div className="max-w-6xl mx-auto">
                         
-                    <LeftNavBar />
+                        {/* Header */}
+                        <div className="mb-8">
+                            <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">Wallet & Payments</h1>
+                            <p className="text-slate-600">Manage your earnings and withdrawal requests</p>
+                        </div>
 
-                    <div className="p-8 flex-1 min-h-screen ml-[200px] bg-slate-100 flex flex-col gap-6"> 
-                        <h5 className="text-center font-bold text-3xl">Welcome to your account manager</h5>
-                        <p className="text-sm text-center">Lorem ipsum dolor sit amet consectetur adipisicing elit. Ducimus deserunt quo dignissimos quam, eos ea!</p>
-                        <div className="grid grid-cols-2 gap-6">
-                            {/* wallet details  */}
-                            <div className="p-4 space-y-2 rounded-lg shadow-lg text-slate-700 bg-white">
-                                <div className="flex space-x-4 items-center">
-                                    <i className="fas fa-bar-chart"></i>
-                                    <h5 className="text-lg">Earnings</h5>
+                        {/* Balance Card */}
+                        <div className="bg-gradient-primary text-white rounded-xl p-8 mb-8">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-slate-200 mb-2">Available Balance</p>
+                                    <h2 className="text-4xl md:text-5xl font-bold">₦{wallet.balance?.toLocaleString() || 0}</h2>
                                 </div>
-                                <hr className="text-slate-50" />
-                                <div className="flex flex-col space-y-4">
-                                    <h5>Referal Earnings: <span className="font-bold text-xl">&#8358;0</span></h5>
-                                    <h5>Project Earnings: <span className="font-bold text-xl">&#8358;{wallet?.balance ?? 0}</span> </h5>
-                                </div>
-                                <hr className="text-slate-50" />
-                                <div className="flex justify-between">
-                                    <h5>Total Earnings: <span className="font-bold text-xl">&#8358;{wallet?.balance ?? 0}</span></h5>
-                                </div>
-                                <hr className="text-slate-50" />
-                                <div className="mt-4">
-                                    <div className="flex space-x-4 items-center justify-center">
-                                        <i className="fas fa-money-bill"></i>
-                                        <h5 className="font-bold text-xl text-green-700">Cash Out</h5>
-                                    </div>
-                                    <form action="" onSubmit={handlecashOut} className="flex space-x-4 my-4">
-                                        <input type="number" name="amount" value={cashout.amount} onChange={handleAmountChange} placeholder="0.00" className="px-4 p-2 border-slate-200 border rounded-md flex-1" />
-                                        <Button type="submit" className="font-robot font-bold text-white bg-green-600 rounded-sm p-2">Cashout</Button>
-                                    </form>
-                                    <p className="text-red-500">Note: The cashout will be processed and the money will be sent to your account!</p>
-                                </div>
-                                
-                            </div>
-
-                            {/* referal link  */}
-                            
-                            <div className="p-4 space-y-2 rounded-lg shadow-lg flex flex-col text-slate-700 bg-white">
-                                <div className="flex space-x-4 items-center">
-                                    <i className="fas fa-share"></i>
-                                    <h5 className="text-lg">Referal Link</h5>
-                                </div>
-                                <hr className="text-slate-50" />
-                                <div className="flex flex-col space-y-4">
-
-                                    <div className="w-full flex items-center">
-                                        <input disabled type="text" placeholder="https/www.codegraphs/com/$334234" className="px-4 p-2 border-slate-200 border flex-1" />
-                                        <a href="" className="bg-primary text-white h-full p-2">Copy Link <i className="fas fa-copy "></i></a>
-                                    </div>
-                                    <div className="flex space-x-4 items-center justify-center">
-                                        <i className="fab fa-instagram text-2xl"></i>
-                                        <i className="fab fa-whatsapp text-2xl"></i>
-                                        <i className="fab fa-facebook text-2xl"></i>
-                                        <i className="fab fa-twitter text-2xl"></i>
-                                    </div>
+                                <div className="text-6xl opacity-10">
+                                    <i className="fas fa-wallet"></i>
                                 </div>
                             </div>
-                            
+                        </div>
 
-                            {/* bank details  */}
-                            <div className="p-4 space-y-2 rounded-lg shadow-lg flex flex-col justify-evenly text-slate-700 bg-white">
-                                <div className="flex space-x-4 items-center">
-                                    <i className="fas fa-bank"></i>
-                                    <h5 className="text-lg">Bank Details</h5>
-                                </div>
-                                <hr className="text-slate-50" />
-                                <div className="flex flex-col space-y-4">
-                                    <h5>Account Name: <span className="font-bold text-lg">{wallet?.account_name}</span></h5>
-                                    <hr className="text-slate-50" />
-                                    <h5>Account Number: <span className="font-bold text-lg">{wallet?.account_number} </span></h5>
-                                    <hr className="text-slate-50" />
-                                    <h5>Bank: <span className="font-bold text-lg">{wallet?.bank} </span></h5>
-                                    
-                                </div>
-                                <hr className="text-slate-50" />
-                            </div>
-
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                             
-                            {/* update bank details  */}
-                            <div className="p-4 space-y-2 rounded-lg shadow-lg flex flex-col text-slate-700 bg-white">
-                                <div className="flex space-x-4 items-center">
-                                    <i className="fas fa-bank"></i>
-                                    <h5 className="text-lg">Update Account Details</h5>
+                            {/* Cashout Section */}
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
+                                        <i className="fas fa-money-bill-wave"></i>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-primary">Request Withdrawal</h3>
                                 </div>
-                                <hr className="text-slate-50" />
-                                <form action="" onSubmit={handleUpdateData}>
-                                    <div className="flex flex-col space-y-4">
-                                        <input type="text" name="account_name" value={account.account_name} onChange={handleChange} placeholder="Enter Account Name" className="px-4 p-2 border-slate-200 border flex-1" />
-                                        <input type="text" name="bank" value={account.bank} onChange={handleChange} placeholder="Enter Bank Name" className="px-4 p-2 border-slate-200 border flex-1" />
-                                        <input type="number" name="account_number" value={account.account_number} onChange={handleChange} placeholder="Enter Account Number" className="px-4 p-2 border-slate-200 border flex-1" />
+
+                                <form onSubmit={handlecashOut} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">Amount (₦)</label>
+                                        <input 
+                                            type="number" 
+                                            name="amount" 
+                                            value={cashout.amount} 
+                                            onChange={handleAmountChange}
+                                            placeholder="Enter amount to withdraw"
+                                            min="1"
+                                            step="0.01"
+                                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                        />
                                     </div>
-                                    <hr className="text-slate-50" />
-                                    <div className="pt-4">
-                                        <Button type="submit" className="font-robot font-bold text-white bg-green-600 rounded-sm p-2">Update</Button>
-                                    </div>
+                                    <button 
+                                        type="submit"
+                                        disabled={isLoading}
+                                        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-2 rounded-lg transition flex items-center justify-center gap-2"
+                                    >
+                                        {isLoading ? (
+                                            <>
+                                                <i className="fas fa-spinner fa-spin"></i>
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="fas fa-arrow-down"></i>
+                                                Request Withdrawal
+                                            </>
+                                        )}
+                                    </button>
+                                    <p className="text-xs text-slate-500">
+                                        <i className="fas fa-info-circle mr-1"></i>
+                                        Withdrawals are processed within 2-3 business days
+                                    </p>
                                 </form>
                             </div>
 
+                            {/* Bank Details Display */}
+                            <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+                                        <i className="fas fa-bank"></i>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-primary">Bank Details</h3>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {wallet.account_name ? (
+                                        <>
+                                            <div>
+                                                <p className="text-xs text-slate-500 uppercase">Account Name</p>
+                                                <p className="text-lg font-semibold text-slate-800">{wallet.account_name}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-slate-500 uppercase">Account Number</p>
+                                                <p className="text-lg font-semibold text-slate-800">{wallet.account_number}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-slate-500 uppercase">Bank Name</p>
+                                                <p className="text-lg font-semibold text-slate-800">{wallet.bank}</p>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="text-center py-6">
+                                            <i className="fas fa-exclamation-circle text-3xl text-slate-400 mb-2"></i>
+                                            <p className="text-slate-600">No bank details set up yet</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                         </div>
+
+                        {/* Update Bank Details Form */}
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600">
+                                    <i className="fas fa-edit"></i>
+                                </div>
+                                <h3 className="text-lg font-bold text-primary">Update Bank Information</h3>
+                            </div>
+
+                            <form onSubmit={handleUpdateData} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <i className="fas fa-user mr-2 text-primary"></i>Account Name
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        name="account_name" 
+                                        value={account.account_name} 
+                                        onChange={handleChange}
+                                        placeholder="Your full name"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <i className="fas fa-building mr-2 text-primary"></i>Bank Name
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        name="bank" 
+                                        value={account.bank} 
+                                        onChange={handleChange}
+                                        placeholder="e.g., GTBank, Access Bank"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <i className="fas fa-credit-card mr-2 text-primary"></i>Account Number
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        name="account_number" 
+                                        value={account.account_number} 
+                                        onChange={handleChange}
+                                        placeholder="10 digits"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    />
+                                </div>
+
+                                <div className="md:col-span-3">
+                                    <button 
+                                        type="submit"
+                                        disabled={isLoading}
+                                        className="bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-white font-semibold py-2 px-6 rounded-lg transition flex items-center justify-center gap-2"
+                                    >
+                                        {isLoading ? (
+                                            <>
+                                                <i className="fas fa-spinner fa-spin"></i>
+                                                Updating...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="fas fa-save"></i>
+                                                Save Bank Details
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
                     </div>
-                </main>
+                </div>
+            </main>
         </>
     );
-
 }
 
 export default Wallet;

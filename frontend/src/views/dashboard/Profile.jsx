@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
-import Home from './Home'
 import AdminNavBar from "./AdminNavBar";
 import LeftNavBar from "./LeftNavBar";
-import chat1 from "../../assets/images/chat1.png";
-import navy_bg from "../../assets/images/navy_bg.jpg";
+import '@fortawesome/fontawesome-free/css/all.css';
 import apiInstance from "../../utils/axios";
-import useUserData from "../../plugin/useUserData";
 import Cookies from 'js-cookie';
-import Moment from "../../plugin/Moment";
 import Toast from "../../plugin/Toast";
+import useAxios from "../../utils/useAxios";
 
 function Profile(){
 
@@ -17,18 +14,17 @@ function Profile(){
         name: "",
         contact: "",
         specialization: "",
-        password: "",
-        projects: "",
-        likes: ""
+        email: "",
+        projects: 0,
+        likes: 0
     })
 
+    const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
     const fetchProfile = async () => {
         try {
-            const responseProfile = await apiInstance.get('user/me', 
-                { headers: { Authorization: `Bearer ${accessToken}` } }
-            )
+            const responseProfile = await useAxios.axiosInstance.get('user/me')
             setProfile(responseProfile.data)
         } catch (error) {
             console.log(error)
@@ -47,29 +43,31 @@ function Profile(){
         setIsLoading(true)
 
         const formData = new FormData()
-
         formData.append("name", profile.name)
         formData.append("specialization", profile.specialization)
         formData.append("contact", profile.contact)
-        formData.append("password", profile.password)
-
-        try {
-            const response = await apiInstance.patch(`user/me`,  formData,
-                { headers: { 
-                    "Content-Type": "multipart/form-data",
-                    Authorization: `Bearer ${accessToken}`
-                }}
-            )
-            Toast('success', "profile Updated Successfully")
-            setIsLoading(false)
-            window.location.reload()
-
-        } catch (error) {
-            console.log(error)
+        if (password) {
+            formData.append("password", password)
         }
 
+        try {
+            const response = await useAxios.axiosInstance.patch(`user/me`, formData, {
+                headers: { 
+                    "Content-Type": "multipart/form-data",
+                }
+            })
+            Toast('success', "Profile Updated Successfully")
+            setPassword("")
+            setIsLoading(false)
+            setTimeout(() => {
+                window.location.reload()
+            }, 1500)
+        } catch (error) {
+            console.log(error)
+            Toast('error', "Error updating profile")
+            setIsLoading(false)
+        }
     }
-
 
     useEffect(() =>{
         fetchProfile()
@@ -80,78 +78,167 @@ function Profile(){
             <AdminNavBar />
 
             <main className="flex">
-                    
-            <LeftNavBar />
-            
-            <div className="p-8 flex-1 ml-[200px] bg-slate-100"> 
-                <div className="grid grid-cols-2 gap-8 w-full bg-cover">
-                    <div>
-                        <div  className="bg-white p-4 rounded-lg shadow-lg">
-                            <div className="relative mt-1 flex h-32 w-full justify-center rounded-xl bg-cover" 
-                                style={{ backgroundImage: `url(${navy_bg})` }}>
-                                <div className="absolute -bottom-12 flex h-[87px] w-[87px] items-center justify-center rounded-full border-[4px] border-white bg-blue-400 dark:!border-navy-700">
-                                    <img className="h-full w-full rounded-full" src={chat1} alt="" />
-                                </div>
-                            </div>
-
-                            <div className="mt-16 flex flex-col items-center">
-                                <h4 className="text-xl font-bold text-navy-700 dark:text-white">
-                                    { profile?.name }
-                                </h4>
-                                <p className="text-base font-normal text-gray-600">{ profile?.specialization ?? null}</p>
-                                <p className="text-base font-normal text-gray-600">{ profile?.email }</p>
-                            </div>
-
-                            <div className="mt-6 mb-3 flex gap-4 md:!gap-14 justify-center">
-                                <div className="flex flex-col items-center justify-center">
-                                    <p className="text-2xl font-bold text-navy-700 dark:text-white">{profile?.projects ?? 0}</p>
-                                    <p className="text-sm font-normal text-gray-600">Projects</p>
-                                </div>
-                                <div className="flex flex-col items-center justify-center">
-                                    <p className="text-2xl font-bold text-navy-700 dark:text-white">
-                                        {profile?.likes ?? 0}
-                                    </p>
-                                    <p className="text-sm font-normal text-gray-600">Likes</p>
-                                </div>
-                                    <div className="flex flex-col items-center justify-center">
-                                    <p className="text-2xl font-bold text-navy-700 dark:text-white">
-                                        434
-                                    </p>
-                                <p className="text-sm font-normal text-gray-600">Audience Reached</p>
-                                </div>
-                            </div>
+                <LeftNavBar />
+                
+                {/* Main Content */}
+                <div className="flex-1 md:ml-64 pt-6 px-4 md:px-8 pb-8 bg-slate-50 min-h-[calc(100vh-64px)]">
+                    <div className="max-w-4xl mx-auto">
+                        
+                        {/* Header */}
+                        <div className="mb-8">
+                            <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">Profile Settings</h1>
+                            <p className="text-slate-600">Update your profile information and preferences</p>
                         </div>
-                    </div>
 
-                    <div className="bg-white p-4 rounded-2xl shadow-lg h-full">
-                        <form action="" onSubmit={handleUpdateData} className="bg-white p-4 rounded-lg">
-                            <div className="form-body py-6 gap-x-8">
-                                <div className="flex flex-col space-y-2 pb-2 mb-2">
-                                    <label htmlFor="">Full Name:</label>
-                                    <input type="text" id="name" name="name" value={profile.name} onChange={handleChange} placeholder="zubairuabduljelil@gmail.com"  className="p-2 border-gray-300 border-[1px] rounded-lg w-full focus:outline-none"/>
-                                </div>
-                                <div className="flex flex-col space-y-2 pb-2 mb-2">
-                                    <label htmlFor="">Speciality:</label>
-                                    <input type="text" id="speciality" name="specialization" value={profile.specialization} onChange={handleChange} placeholder=""  className="p-2 border-gray-300 border-[1px] rounded-lg w-full focus:outline-none"/>
-                                </div>
-                                <div className="flex flex-col space-y-2 pb-2 mb-4">
-                                    <label htmlFor="">Contact:</label>
-                                    <input type="number" id="contact" name="contact" value={profile.contact} onChange={handleChange}  className="p-2 border-gray-300 border-[1px] rounded-lg w-full focus:outline-none"/>
-                                </div>
-                                <div className="flex flex-col space-y-2 pb-2">
-                                    <label htmlFor="">Password:</label>
-                                    <input type="password" id="password" name="password" value={profile.password} onChange={handleChange}  className="p-2 border-gray-300 border-[1px] rounded-lg w-full focus:outline-none"/>
-                                </div>
-                            </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             
-                            <div className="py-2">
-                                <button className="bg-primary text-white py-2 px-4 rounded-md" type="submit">Save</button>
+                            {/* Profile Card */}
+                            <div className="lg:col-span-1">
+                                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 text-center">
+                                    {/* Avatar */}
+                                    <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center text-white text-3xl mx-auto mb-4">
+                                        <i className="fas fa-user"></i>
+                                    </div>
+                                    
+                                    {/* Profile Info */}
+                                    <h2 className="text-xl font-bold text-primary mb-1">{profile?.name || 'User'}</h2>
+                                    <p className="text-slate-600 text-sm mb-4">{profile?.email}</p>
+                                    
+                                    {profile?.specialization && (
+                                        <p className="inline-block bg-blue-100 text-blue-600 text-xs font-medium px-3 py-1 rounded-full mb-6">
+                                            {profile.specialization}
+                                        </p>
+                                    )}
+                                    
+                                    {/* Stats */}
+                                    <div className="space-y-3 pt-6 border-t border-slate-100">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-600 text-sm">Projects</span>
+                                            <span className="text-primary font-bold text-lg">{profile?.projects || 0}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-slate-600 text-sm">Likes</span>
+                                            <span className="text-red-600 font-bold text-lg">{profile?.likes || 0}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                        </form>
+                            {/* Edit Form */}
+                            <div className="lg:col-span-2">
+                                <form onSubmit={handleUpdateData} className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                                    
+                                    {/* Form Title */}
+                                    <h3 className="text-lg font-bold text-primary mb-6">Edit Profile</h3>
+
+                                    {/* Form Fields */}
+                                    <div className="space-y-5">
+                                        
+                                        {/* Full Name */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                <i className="fas fa-user mr-2 text-primary"></i>Full Name
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                name="name" 
+                                                value={profile.name} 
+                                                onChange={handleChange}
+                                                placeholder="Enter your full name"
+                                                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                                            />
+                                        </div>
+
+                                        {/* Email (Read-only) */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                <i className="fas fa-envelope mr-2 text-primary"></i>Email Address
+                                            </label>
+                                            <input 
+                                                type="email" 
+                                                value={profile.email || ''} 
+                                                disabled
+                                                className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
+                                            />
+                                            <p className="text-xs text-slate-500 mt-1">Cannot be changed</p>
+                                        </div>
+
+                                        {/* Specialization */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                <i className="fas fa-briefcase mr-2 text-primary"></i>Specialization
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                name="specialization" 
+                                                value={profile.specialization} 
+                                                onChange={handleChange}
+                                                placeholder="e.g., Machine Learning, Web Development"
+                                                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                                            />
+                                        </div>
+
+                                        {/* Contact */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                <i className="fas fa-phone mr-2 text-primary"></i>Contact Number
+                                            </label>
+                                            <input 
+                                                type="tel" 
+                                                name="contact" 
+                                                value={profile.contact} 
+                                                onChange={handleChange}
+                                                placeholder="Enter your contact number"
+                                                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                                            />
+                                        </div>
+
+                                        {/* Password */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                <i className="fas fa-lock mr-2 text-primary"></i>Password
+                                            </label>
+                                            <input 
+                                                type="password" 
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                placeholder="Leave blank to keep current password"
+                                                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+                                            />
+                                            <p className="text-xs text-slate-500 mt-1">Only change if you want a new password</p>
+                                        </div>
+
+                                    </div>
+
+                                    {/* Submit Button */}
+                                    <div className="pt-6 border-t border-slate-100 mt-6">
+                                        <button 
+                                            type="submit"
+                                            disabled={isLoading}
+                                            className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isLoading ? (
+                                                <>
+                                                    <i className="fas fa-spinner fa-spin"></i>
+                                                    Saving...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <i className="fas fa-save"></i>
+                                                    Save Changes
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+
+                                </form>
+                            </div>
+
+                        </div>
+
                     </div>
                 </div>
-            </div>
+
             </main>
         
         </>

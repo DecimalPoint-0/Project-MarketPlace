@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
 import '@fortawesome/fontawesome-free/css/all.css';
-import chat1 from "../../assets/images/chat1.png";
 import logo from '../../assets/images/logo.png';
 import Cookies from 'js-cookie';
 import apiInstance from "../../utils/axios";
-
+import { Link } from "react-router-dom";
 
 function AdminNavBar(){
 
     const accessToken = Cookies.get('access_token');
-    
     const [notification, setNotification] = useState(false);
+    const [profile, setProfile] = useState({ name: "" });
 
     const fetchNotification = async () => {
         try {
@@ -23,42 +22,93 @@ function AdminNavBar(){
         }
     }
 
-    useEffect(() =>{
+    const fetchProfile = async () => {
+        try {
+            const response = await apiInstance.get('user/me',
+                { headers: { Authorization: `Bearer ${accessToken}` } }
+            )
+            setProfile(response.data)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    useEffect(() => {
         fetchNotification();
+        fetchProfile();
     }, [])
 
+    const handleLogout = () => {
+        Cookies.remove('access_token');
+        window.location.href = '/sign-in';
+    }
+
     return (
-        <>
-            <div className="sticky top-2 z-40 flex flex-row flex-wrap items-center justify-between shadow-md rounded-xl bg-white/10 p-2 backdrop-blur-xl dark:bg-[#0b14374d]">
-                <div className="flex justify-between items-center space-x-2">
-                    <img className="logo h-10 w-10" src={logo} />
-                    <div className="brandname font-robot font-semibold">Code <span className="text-secondary">Graphics</span></div>
-                </div>
-                <div className="flex border-gray-300 border-[1px] px-4 bg-white rounded-lg"> 
-                    <form action="">
-                        <div>
-                            <input type="text" className="p-2 focus:outline-none" />
-                            <button className="">
-                                <i className='fas fa-search text-gray-300'></i>
-                            </button>
-                        </div>
-                    </form> 
-                </div>
-                <div className="flex items-center space-x-4">
-                    <div className="relative">
-                        <a href="">
-                            <i className="fas fa-bell text-2xl"></i>
-                            <span className="absolute top-0 right-0 w-full bg-secondary text-white text-[12px] rounded-full text-center font-bold">{notification.length}</span>
-                        </a>
+        <nav className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
+            <div className="flex items-center justify-between px-6 py-4 max-w-full">
+                {/* Logo */}
+                <Link to="/dashboard/" className="flex items-center gap-3 group">
+                    <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center text-white">
+                        <img src={logo} alt="Logo" className="w-6 h-6" />
                     </div>
-                    <div className="h-10 w-10"><img src={chat1} alt="" /></div>
-                    <a href=""><i className="fa fa-sign-out"></i></a>
+                    <div className="hidden sm:flex flex-col">
+                        <span className="font-bold text-primary">Code Graphics</span>
+                        <span className="text-xs text-slate-500">Dashboard</span>
+                    </div>
+                </Link>
+
+                {/* Center Search */}
+                <div className="hidden md:flex flex-1 mx-8">
+                    <div className="flex items-center w-full max-w-md">
+                        <input 
+                            type="text" 
+                            placeholder="Search..." 
+                            className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary text-sm"
+                        />
+                        <button className="ml-2 text-slate-400 hover:text-primary transition">
+                            <i className="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Right Actions */}
+                <div className="flex items-center gap-4">
+                    {/* Notifications */}
+                    <button className="relative p-2 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg transition">
+                        <i className="fas fa-bell text-lg"></i>
+                        {notification && (
+                            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                        )}
+                    </button>
+
+                    {/* Messages */}
+                    <button className="relative p-2 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg transition">
+                        <i className="fas fa-envelope text-lg"></i>
+                    </button>
+
+                    {/* Profile Dropdown */}
+                    <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
+                        <div className="hidden sm:flex flex-col text-right">
+                            <p className="text-sm font-semibold text-primary">{profile.name || "User"}</p>
+                            <p className="text-xs text-slate-500">Researcher</p>
+                        </div>
+                        <div className="w-10 h-10 bg-gradient-to-br from-secondary to-amber-400 rounded-full flex items-center justify-center text-white font-bold">
+                            {profile.name?.charAt(0).toUpperCase() || "U"}
+                        </div>
+                    </div>
+
+                    {/* Logout */}
+                    <button
+                        onClick={handleLogout}
+                        className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                        title="Logout"
+                    >
+                        <i className="fas fa-sign-out-alt"></i>
+                    </button>
                 </div>
             </div>
-            
-        </>
+        </nav>
     );
 }
 
-
-export default AdminNavBar
+export default AdminNavBar;
